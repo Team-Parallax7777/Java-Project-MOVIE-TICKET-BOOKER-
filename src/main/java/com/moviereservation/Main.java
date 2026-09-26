@@ -5,6 +5,7 @@ import com.moviereservation.model.Seat;
 import com.moviereservation.model.User;
 import com.moviereservation.service.AuthService;
 import com.moviereservation.service.BookingService;
+import com.moviereservation.service.BookingService.BookingInfo;
 import com.moviereservation.service.MovieService;
 
 import java.util.List;
@@ -85,15 +86,25 @@ public class Main {
         do {
             System.out.println("\n----- MAIN MENU -----");
             System.out.println("1. View Movies & Book Seat");
-            System.out.println("2. Logout");
+            System.out.println("2. My Bookings");
+            System.out.println("3. Cancel a Booking");
+            System.out.println("4. Logout");
             System.out.print("Enter choice: ");
             choice = sc.nextInt();
             sc.nextLine();
 
-            if (choice == 1) {
-                viewMoviesAndBook();
+            switch (choice) {
+                case 1:
+                    viewMoviesAndBook();
+                    break;
+                case 2:
+                    viewMyBookings();
+                    break;
+                case 3:
+                    cancelBooking();
+                    break;
             }
-        } while (choice != 2);
+        } while (choice != 4);
 
         loggedInUser = null;
     }
@@ -146,6 +157,61 @@ public class Main {
         boolean booked = bookingService.bookSeat(loggedInUser.getUserId(), movieId, selectedSeat.getSeatId());
         if (booked) {
             System.out.println("Seat " + seatNumber + " booked successfully!");
+        }
+    }
+
+    static void viewMyBookings() {
+        List<BookingInfo> bookings = bookingService.getMyBookings(loggedInUser.getUserId());
+
+        if (bookings.isEmpty()) {
+            System.out.println("You have no bookings yet.");
+            return;
+        }
+
+        System.out.println("\n----- MY BOOKINGS -----");
+        for (BookingInfo b : bookings) {
+            System.out.println("Booking ID: " + b.bookingId
+                    + " | Movie: " + b.movieTitle
+                    + " | Seat: " + b.seatNumber
+                    + " | Booked on: " + b.bookingDate);
+        }
+    }
+
+    static void cancelBooking() {
+        List<BookingInfo> bookings = bookingService.getMyBookings(loggedInUser.getUserId());
+
+        if (bookings.isEmpty()) {
+            System.out.println("You have no bookings to cancel.");
+            return;
+        }
+
+        System.out.println("\n----- MY BOOKINGS -----");
+        for (BookingInfo b : bookings) {
+            System.out.println("Booking ID: " + b.bookingId
+                    + " | Movie: " + b.movieTitle
+                    + " | Seat: " + b.seatNumber);
+        }
+
+        System.out.print("\nEnter Booking ID to cancel: ");
+        int bookingId = sc.nextInt();
+        sc.nextLine();
+
+        int seatId = -1;
+        for (BookingInfo b : bookings) {
+            if (b.bookingId == bookingId) {
+                seatId = b.seatId;
+                break;
+            }
+        }
+
+        if (seatId == -1) {
+            System.out.println("Booking ID not found.");
+            return;
+        }
+
+        boolean cancelled = bookingService.cancelBooking(bookingId, seatId);
+        if (cancelled) {
+            System.out.println("Booking cancelled successfully.");
         }
     }
 }

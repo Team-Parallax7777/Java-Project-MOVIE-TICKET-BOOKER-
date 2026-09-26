@@ -9,7 +9,26 @@ import java.sql.ResultSet;
 
 public class AuthService {
 
+    public boolean emailExists(String email) {
+        String sql = "SELECT user_id FROM users WHERE email = ?";
+        try {
+            Connection con = DBConnection.getConnection();
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setString(1, email);
+            ResultSet rs = ps.executeQuery();
+            return rs.next();
+        } catch (Exception e) {
+            System.out.println("Could not check email: " + e.getMessage());
+            return false;
+        }
+    }
+
     public boolean register(String name, String email, String password, String phone) {
+        if (emailExists(email)) {
+            System.out.println("An account with this email already exists. Please login instead.");
+            return false;
+        }
+
         String sql = "INSERT INTO users (name, email, password, phone) VALUES (?, ?, ?, ?)";
         try {
             Connection con = DBConnection.getConnection();

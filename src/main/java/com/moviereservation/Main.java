@@ -19,6 +19,19 @@ public class Main {
     static BookingService bookingService = new BookingService();
     static User loggedInUser = null;
 
+    // safely reads an integer, re-prompting on bad input instead of crashing
+    static int readInt(String prompt) {
+        while (true) {
+            System.out.print(prompt);
+            String input = sc.nextLine();
+            try {
+                return Integer.parseInt(input.trim());
+            } catch (NumberFormatException e) {
+                System.out.println("Please enter a valid number.");
+            }
+        }
+    }
+
     public static void main(String[] args) {
         int choice;
         do {
@@ -26,9 +39,7 @@ public class Main {
             System.out.println("1. Register");
             System.out.println("2. Login");
             System.out.println("3. Exit");
-            System.out.print("Enter choice: ");
-            choice = sc.nextInt();
-            sc.nextLine();
+            choice = readInt("Enter choice: ");
 
             switch (choice) {
                 case 1:
@@ -51,13 +62,18 @@ public class Main {
 
     static void registerUser() {
         System.out.print("Name: ");
-        String name = sc.nextLine();
+        String name = sc.nextLine().trim();
         System.out.print("Email: ");
-        String email = sc.nextLine();
+        String email = sc.nextLine().trim();
         System.out.print("Password: ");
-        String password = sc.nextLine();
+        String password = sc.nextLine().trim();
         System.out.print("Phone: ");
-        String phone = sc.nextLine();
+        String phone = sc.nextLine().trim();
+
+        if (name.isEmpty() || email.isEmpty() || password.isEmpty()) {
+            System.out.println("Name, email, and password cannot be empty.");
+            return;
+        }
 
         boolean success = authService.register(name, email, password, phone);
         if (success) {
@@ -89,9 +105,7 @@ public class Main {
             System.out.println("2. My Bookings");
             System.out.println("3. Cancel a Booking");
             System.out.println("4. Logout");
-            System.out.print("Enter choice: ");
-            choice = sc.nextInt();
-            sc.nextLine();
+            choice = readInt("Enter choice: ");
 
             switch (choice) {
                 case 1:
@@ -121,9 +135,7 @@ public class Main {
             System.out.println(m);
         }
 
-        System.out.print("Enter movie ID to book: ");
-        int movieId = sc.nextInt();
-        sc.nextLine();
+        int movieId = readInt("Enter movie ID to book: ");
 
         List<Seat> seats = movieService.getSeatsForMovie(movieId);
         if (seats.isEmpty()) {
@@ -192,9 +204,7 @@ public class Main {
                     + " | Seat: " + b.seatNumber);
         }
 
-        System.out.print("\nEnter Booking ID to cancel: ");
-        int bookingId = sc.nextInt();
-        sc.nextLine();
+        int bookingId = readInt("\nEnter Booking ID to cancel: ");
 
         int seatId = -1;
         for (BookingInfo b : bookings) {

@@ -5,8 +5,48 @@ import com.moviereservation.db.DBConnection;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.List;
 
 public class BookingService {
+
+    // simple holder class just to carry joined booking details back to Main
+    public static class BookingInfo {
+        public int bookingId;
+        public int seatId;
+        public String movieTitle;
+        public String seatNumber;
+        public String bookingDate;
+    }
+
+    public List<BookingInfo> getMyBookings(int userId) {
+        List<BookingInfo> list = new ArrayList<>();
+        String sql = "SELECT b.booking_id, b.seat_id, m.title, s.seat_number, b.booking_date " +
+                "FROM bookings b " +
+                "JOIN movies m ON b.movie_id = m.movie_id " +
+                "JOIN seats s ON b.seat_id = s.seat_id " +
+                "WHERE b.user_id = ?";
+
+        try {
+            Connection con = DBConnection.getConnection();
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setInt(1, userId);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                BookingInfo info = new BookingInfo();
+                info.bookingId = rs.getInt("booking_id");
+                info.seatId = rs.getInt("seat_id");
+                info.movieTitle = rs.getString("title");
+                info.seatNumber = rs.getString("seat_number");
+                info.bookingDate = rs.getString("booking_date");
+                list.add(info);
+            }
+        } catch (Exception e) {
+            System.out.println("Could not fetch bookings: " + e.getMessage());
+        }
+        return list;
+    }
 
     public boolean bookSeat(int userId, int movieId, int seatId) {
         String checkSql = "SELECT is_booked FROM seats WHERE seat_id = ?";
